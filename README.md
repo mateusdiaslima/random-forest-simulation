@@ -1,6 +1,8 @@
 # 🔎 Sobre o projeto
 
-O objetivo desse projeto é aplicar é comparar três modelos baseados em árvores: árvore de decisão, bagging e floresta aleatória. Primeiro, é apresentada a árvore de decisão por ser o modelo mais simples. Como a árvore de decisão tem suas limitações em relação à predição, introduzimos o boosting para diminuir essas limitações. A floresta aleatória é apresentada como uma otimização do boosting.
+O objetivo deste projeto é aplicar é comparar três modelos baseados em árvores: árvore de decisão, bagging e floresta aleatória. Primeiro, é apresentada a árvore de decisão por ser o modelo mais simples. Como a árvore de decisão tem suas limitações em relação à predição, introduzimos o boosting para diminuir essas limitações. A floresta aleatória é apresentada como uma otimização do boosting.
+
+Esses modelos podem ser aplicados nos contextos de regressão e classificação. Neste projeto, focamos na regressão.
 
 # 📝 Roteiro
 
@@ -17,3 +19,6 @@ O objetivo desse projeto é aplicar é comparar três modelos baseados em árvor
   - [ ] Simulação para ver desempenho e comparar com o desempenho do boosting e árvore de decisão
 - [ ] Diagnóstico do modelo
 
+# 📚 Bibliografia
+
+James, G., Witten, D., Hastie, T., Tibshirani, R. (2021). *An introduction to statistical learning: with Applications in R* (2nd ed.) [PDF]. Springer.
