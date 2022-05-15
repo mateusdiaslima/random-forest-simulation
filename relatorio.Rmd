@@ -47,4 +47,34 @@ O processo descrito acima pode produzir boas previsões no conjunto de treinamen
 
 efhdytef
 
-# Boosting
+# Ensemble
+
+Um método *ensemble* é uma abordagem que combina muitos modelos simples de "blocos de construção" para obter um modelo único e potencialmente muito poderoso. Esses modelos de blocos de construção simples às vezes são conhecidos como *weak learners*, pois podem levar a previsões medíocres por si só.
+
+Discutiremos agora bagging e florestas aleatórias. Esses são métodos ensemble para os quais o bloco de construção simples é uma árvore de regressão.
+
+# Bagging
+
+O bootstrap é uma ideia extremamente poderosa. É usado em muitas situações em que é difícil ou mesmo impossível calcular diretamente o desvio padrão de uma quantidade de interesse. Vemos aqui que o bootstrap pode ser usado em um contexto completamente diferente, a fim de melhorar métodos de aprendizado estatístico, como árvores de decisão.
+
+As árvores de decisão sofrem de alta variância. Isso significa que, se dividirmos os dados de treinamento em duas partes aleatoriamente e ajustarmos uma árvore de decisão a ambas as metades, os resultados obtidos poderão ser bem diferentes. Em contraste, um procedimento com baixa variância produzirá resultados semelhantes se aplicado repetidamente a conjuntos de dados distintos; a regressão linear tende a ter baixa variância, se a razão de $n$ para $p$ for moderadamente grande. O *bootstrap aggregation*, ou *bagging*, é um procedimento de propósito geral para reduzir a variação de um método de aprendizado estatístico; nós o introduzimos aqui porque é particularmente útil e frequentemente usado no contexto de árvores de decisão.
+
+Lembre-se que dado um conjunto de $n$ observações independentes $Z_1,…,Z_n$, cada uma com variância $\sigma^2$, a variância da média $\bar Z$ das observações é dada por $\sigma^2/n$. Em outras palavras, a média de um conjunto de observações reduz a variância. Portanto, uma maneira natural de reduzir a variância e aumentar a precisão do conjunto de teste de um método de aprendizado estatístico é pegar muitos conjuntos de treinamento da população, construir um modelo de previsão separado usando cada conjunto de treinamento e calcular a média das previsões resultantes. Em outras palavras, poderíamos calcular $\hat f^1(x), \hat f^2(x),…, \hat f^B(x)$ usando $B$ conjuntos de treinamento separados e fazer a média deles para obter um único modelo de aprendizado estatístico de baixa variância, dado por
+
+$$
+\hat{f}_{\mathrm{avg}}(x)=\frac{1}{B} \sum_{b=1}^{B} \hat{f}^{b}(x).
+$$
+
+Claro, isso não é prático porque geralmente não temos acesso a vários conjuntos de treinamento. Em vez disso, podemos aplicar o bootstrap, obtendo amostras repetidas do (único) conjunto de dados de treinamento. Nesta abordagem, geramos $B$ diferentes conjuntos de dados de treinamento por bootstrap. Em seguida, treinamos nosso método no b-ésimo conjunto de treinamento por bootstrap para obter $\hat f^{∗b}(x)$ e, finalmente, calculamos a média de todas as previsões, para obter
+
+$$
+\hat{f}_{\mathrm{bag}}(x)=\frac{1}{B} \sum_{b=1}^{B} \hat{f}^{*b}(x).
+$$
+
+Isso é chamado de bagging.
+
+## Importância de variáveis
+
+Como discutimos, o bagging normalmente resulta em maior precisão em relação à previsão usando uma única árvore. Infelizmente, no entanto, pode ser difícil interpretar o modelo resultante. Lembre-se de que uma das vantagens das árvores de decisão é o diagrama atraente e de fácil interpretação que resulta. No entanto, quando agregamos um grande número de árvores, não é mais possível representar o procedimento de aprendizado estatístico resultante usando uma única árvore e não fica mais claro quais variáveis ​​são mais importantes para o procedimento. Assim, o bagging melhora a precisão da previsão em detrimento da interpretabilidade.
+
+Embora a coleção de árvores agregadas seja muito mais difícil de interpretar do que uma única árvore, pode-se obter um resumo geral da importância de cada preditor usando o RSS (para bagging usando árvores de regressão). No caso do bagging usando árvores de regressão, podemos registrar a quantidade total que o RSS é diminuído devido a divisões em um determinado preditor, com média de todas as árvores B. Um valor grande indica um preditor importante.

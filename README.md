@@ -9,9 +9,9 @@ Esses modelos podem ser aplicados nos contextos de regressão e classificação.
 - [x] Explicar árvore de decisão
   - [x] Limitações
   - [ ] Simulação para ver desempenho
-- [ ] Explicar boosting
-  - [ ] Uma otimização da árvore de decisão: usar conceitos estatísticos para explicar a otimização
-  - [ ] Como determinar a importância de cada variável
+- [x] Explicar boosting
+  - [x] Uma otimização da árvore de decisão: usar conceitos estatísticos para explicar a otimização
+  - [x] Como determinar a importância de cada variável
   - [ ] Simulação para ver desempenho e comparar com o desempenho da árvore de decisão
 - [ ] Explicar floresta aleatória
   - [ ] Uma otimização do boosting: usar conceitos estatísticos para explicar a otimização
