@@ -1,8 +1,10 @@
 ---
-title: ""
-author: ""
-date: ""
-output: html_document
+title: ''
+author: ''
+date: ''
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -45,7 +47,85 @@ O processo descrito acima pode produzir boas previsões no conjunto de treinamen
 
 ## Simulação
 
-efhdytef
+Vamos usar um banco de dados com informações das músicas do spotify. Os dados contêm 50.000 músicas. Vamos construir árvores com o método de podas de árvore (Tree Pruning).
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+spotify = read.csv("data/music_genre.csv")
+```
+
+```{r}
+spotify[spotify |> duplicated(),]
+```
+
+```{r}
+# Remove linhas duplicadas. Que nesse caso é equivalente às linhas nulas
+spotify = spotify[!is.na(spotify$instance_id),]
+```
+
+```{r}
+# Remove colunas irrelevantes e colunas categóricas para agilizar o tempo de treino
+spotify = spotify |> select(-instance_id, -artist_name, -track_name, -obtained_date, -key, -mode, -music_genre)
+```
+
+```{r}
+spotify$tempo = ifelse(spotify$tempo == '?', NA, spotify$tempo) |> as.numeric()
+```
+
+```{r}
+media_tempo = mean(spotify$tempo, na.rm = TRUE)
+spotify$tempo = ifelse(is.na(spotify$tempo), media_tempo, spotify$tempo)
+```
+
+```{r}
+spotify$duration_ms = ifelse(spotify$duration_ms == -1, NA, spotify$duration_ms)
+media_duration = mean(spotify$duration_ms, na.rm = TRUE)
+spotify$duration_ms = ifelse(is.na(spotify$duration_ms), media_duration, spotify$duration_ms)
+```
+
+```{r}
+library(caret)
+library(ggthemes)
+library(showtext)
+```
+
+```{r}
+set.seed(123)
+model_dt = train(
+  popularity ~ ., data = spotify, 
+  method = "rpart",
+  trControl = trainControl("cv", number = 10),
+  tuneLength = 10)
+```
+
+```{r}
+model_dt$bestTune
+```
+
+```{r}
+font_add_google('Poppins', 'myfont')
+showtext_auto()
+```
+
+```{r}
+model_dt$results |> 
+  ggplot(aes(x = cp, y = RMSE)) +
+  geom_line(color = "#0099f9", size = 0.5) +
+  geom_point(color = "#0099f9", size = 2, shape = 21, fill = "white", stroke = 2) +
+  labs(title = "Árvore de decisão com poda", subtitle = "Melhor árvore: cp = 0.00412867, profundidade = 7") +
+  theme_hc() +
+  theme(axis.title = element_text(family = 'myfont'),
+        axis.text = element_text(family = 'myfont'),
+        plot.title = element_text(family = 'myfont', face = 'bold', size = 18),
+        plot.subtitle = element_text(family = 'myfont', color = "#424242"))
+```
+
+```{r}
+rpart.plot::rpart.plot(model_dt$finalModel, type = 5)
+```
 
 # Ensemble
 
@@ -78,3 +158,13 @@ Isso é chamado de bagging.
 Como discutimos, o bagging normalmente resulta em maior precisão em relação à previsão usando uma única árvore. Infelizmente, no entanto, pode ser difícil interpretar o modelo resultante. Lembre-se de que uma das vantagens das árvores de decisão é o diagrama atraente e de fácil interpretação que resulta. No entanto, quando agregamos um grande número de árvores, não é mais possível representar o procedimento de aprendizado estatístico resultante usando uma única árvore e não fica mais claro quais variáveis ​​são mais importantes para o procedimento. Assim, o bagging melhora a precisão da previsão em detrimento da interpretabilidade.
 
 Embora a coleção de árvores agregadas seja muito mais difícil de interpretar do que uma única árvore, pode-se obter um resumo geral da importância de cada preditor usando o RSS (para bagging usando árvores de regressão). No caso do bagging usando árvores de regressão, podemos registrar a quantidade total que o RSS é diminuído devido a divisões em um determinado preditor, com média de todas as árvores B. Um valor grande indica um preditor importante.
+
+# Floresta aleatória
+
+*Florestas aleatórias* fornecem uma melhoria em relação às árvores do bagging por meio de um pequeno ajuste que *descorrelaciona* as árvores. Assim como no bagging, construímos uma série de árvores de decisão em amostras de treinamento bootstrap. Mas ao construir essas árvores de decisão, cada vez que uma divisão em uma árvore é considerada, *uma amostra aleatória de m preditores* é escolhida como candidatos a divisão do conjunto completo de *p* preditores. A divisão pode usar apenas um desses *m* preditores. Uma nova amostra de *m* preditores é coletada em cada divisão e, normalmente, escolhemos $m \approx \sqrt p$ -- ou seja, o número de preditores considerados em cada divisão é aproximadamente igual à raiz quadrada do número total de predito.
+
+Em outras palavras, ao construir uma floresta aleatória, a cada divisão na árvore, o algoritmo *não pode sequer considerar* a maioria dos preditores disponíveis. Isso pode parecer loucura, mas tem uma lógica inteligente. Suponha que haja um preditor muito forte no conjunto de dados, juntamente com vários outros preditores moderadamente fortes. Então, na coleção de árvores do bagging, a maioria ou todas as árvores usarão esse forte preditor na divisão superior. Consequentemente, todas as árvores do bagging serão bastante semelhantes entre si. Portanto, as previsões das árvores do bagging serão altamente correlacionadas. Infelizmente, a média de muitas quantidades altamente correlacionadas não leva a uma redução tão grande na variância quanto a média de muitas quantidades não correlacionadas. Em particular, isso significa que o bagging não levará a uma redução substancial na variância em relação a uma única árvore nesse cenário.
+
+As florestas aleatórias superam esse problema forçando cada divisão a considerar apenas um subconjunto dos preditores. Portanto, em média $(p − m)/p$ das divisões nem mesmo considerará o preditor forte e, portanto, outros preditores terão mais chances. Podemos pensar nesse processo como *descorrelacionar* as árvores, tornando a média das árvores resultantes menos variável e, portanto, mais confiável.
+
+A principal diferença entre bagging e florestas aleatórias é a escolha do tamanho do subconjunto do preditor *m*. Por exemplo, se uma floresta aleatória é construída usando $m = p$, isso equivale simplesmente ao bagging. Usar um pequeno valor de *m* na construção de uma floresta aleatória normalmente será útil quando tivermos um grande número de preditores correlacionados. Assim como acontece com o bagging, as florestas aleatórias não serão superajustadas se aumentarmos $B$, então, na prática, usamos um valor de $B$ suficientemente grande para que a taxa de erro se estabeleça.
